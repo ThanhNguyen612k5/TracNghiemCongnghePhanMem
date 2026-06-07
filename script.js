@@ -47,20 +47,66 @@ const questionBank = [
 ];
 let currentQuestions=[];
 
-function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
+function shuffle(arr){
+    return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function shuffleAnswers(question){
+
+    const options = question.answers.map((answer,index)=>({
+        text: answer,
+        originalIndex: index
+    }));
+
+    const shuffled = shuffle(options);
+
+    const newCorrect = shuffled.findIndex(
+        option => option.originalIndex === question.correct
+    );
+
+    return {
+        question: question.question,
+        answers: shuffled.map(option => option.text),
+        correct: newCorrect
+    };
+}
 
 function loadQuiz(){
-currentQuestions=shuffle([...questionBank]).slice(0,Math.min(30,questionBank.length));
-const quiz=document.getElementById('quiz');
-quiz.innerHTML='';
-currentQuestions.forEach((q,i)=>{
-let html=`<div class="question" id="q${i}"><h3>Câu ${i+1}: ${q.question}</h3>`;
-q.answers.forEach((a,j)=>{
-html+=`<label><input type="radio" name="q${i}" value="${j}"> ${a}</label><br>`;
-});
-html+='</div>';
-quiz.innerHTML+=html;
-});
+
+    // Reset kết quả
+    document.getElementById('result').innerText =
+        '🎯 Điểm số: 0/30';
+
+    currentQuestions = shuffle(questionBank)
+        .slice(0, Math.min(30, questionBank.length))
+        .map(q => shuffleAnswers(q));
+
+    const quiz = document.getElementById('quiz');
+    quiz.innerHTML = '';
+
+    currentQuestions.forEach((q,i)=>{
+
+        let html = `
+        <div class="question" id="q${i}">
+            <h3>Câu ${i+1}: ${q.question}</h3>
+        `;
+
+        q.answers.forEach((a,j)=>{
+
+            html += `
+            <label>
+                <input type="radio"
+                       name="q${i}"
+                       value="${j}">
+                ${String.fromCharCode(65+j)}. ${a}
+            </label><br>
+            `;
+        });
+
+        html += '</div>';
+
+        quiz.innerHTML += html;
+    });
 }
 
 function submitQuiz(){
